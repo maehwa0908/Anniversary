@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open My Gift</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('photos/anniv.png') no-repeat center center fixed;
+            overflow: hidden;
+        }
+
+        #openBtn {
+            width: 250px;
+            height: 90px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: #c78a2e;
+            color: white;
+            font-size: 25px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 15px 35px rgba(27, 43, 110, .35);
+            transition: .4s;
+        }
+
+        #openBtn:hover {
+            background: #e0b73f;
+            transform: scale(1.08);
+        }
+
+        .ribbon {
+            font-size: 35px;
+        }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(27, 43, 110, .55);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        #messageBox {
+            position: relative;
+            width: 700px;
+            max-width: 92%;
+            background: #fffdf5;
+            padding: 50px 40px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, .35);
+            animation: pop .5s ease;
+        }
+
+        #messageBox h1 {
+            color: #a76f2a;
+            margin-bottom: 20px;
+            font-size: 35px;
+        }
+
+        #message {
+            color: #4a4e75;
+            font-size: 20px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .message-layout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            text-align: left;
+        }
+
+        .message-text {
+            flex: 1;
+        }
+
+        .message-image {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        #actionRow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .choice-btn,
+        .next-btn {
+            border: none;
+            padding: 12px 24px;
+            border-radius: 999px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+
+        .choice-btn:hover,
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, .12);
+        }
+
+        #yesBtn {
+            background: #a76f2a;
+            color: white;
+        }
+
+        #noBtn {
+            background: #e15d5d;
+            color: white;
+            position: relative;
+        }
+
+        .next-btn {
+            background: linear-gradient(110deg, #f8dc84, #d89b2d);
+            color: white;
+            margin-top: 15px;
+        }
+
+        #ribbonOptions {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 8px;
+        }
+
+        .options-label {
+            font-size: 18px;
+            color: #6b5f4f;
+            font-weight: 600;
+        }
+
+        .ribbon-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .ribbon-btn {
+            position: relative;
+            border: none;
+            border-radius: 16px;
+            padding: 18px 12px;
+            background: linear-gradient(135deg, #f8dc84, #d89b2d);
+            color: #5d2d0a;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, .14);
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+
+        .ribbon-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, .2);
+        }
+
+        .ribbon-btn::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 16px;
+            width: 24px;
+            height: 24px;
+            background: #fff0b5;
+            transform: rotate(45deg);
+            border-radius: 4px;
+        }
+
+        #close,
+        #detailClose {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            border: none;
+            background: none;
+            font-size: 30px;
+            color: #1b2b6e;
+            cursor: pointer;
+        }
+
+        #detailOverlay,
+        #nextOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 20, 40, .7);
+            justify-content: center;
+            align-items: center;
+            z-index: 3;
+            padding: 20px;
+        }
+
+        #detailBox,
+        #nextBox {
+            position: relative;
+            display: flex;
+            width: 560px;
+            max-height: 80vh;
+            max-width: 100%;
+            background: #fffdf5;
+            border-radius: 24px;
+            padding: 36px 28px 28px;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .28);
+            animation: pop .35s ease;
+        }
+
+        #detailBox h2,
+        #nextBox h2 {
+            color: #a76f2a;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        #detailHint {
+            color: #685f51;
+            margin-bottom: 16px;
+        }
+
+        .detail-content {
+            display: grid;
+            grid-template-columns: 1fr 140px;
+            gap: 16px;
+            align-items: start;
+            max-height: 60vh;
+        }
+
+        .detail-message {
+        max-height: 60vh;
+        overflow-y: auto;
+        border: 2px solid #e8c37f;
+        border-radius: 16px;
+        padding: 16px;
+        padding-right: 10px;
+        font-size: 17px;
+        line-height: 1.7;
+        color: #4a4e75;
+        background: #fff;
+        white-space: pre-line;
+        text-align: left;
+        display: block;
+        }
+
+        .detail-photo {
+            width: 100%;
+            border-radius: 16px;
+            border: 2px solid #e8c37f;
+            background: #fff;
+            padding: 8px;
+        }
+
+        #nextOverlayMessage {
+            overflow-y: auto;
+            max-height: 50vh;
+            padding-right: 10px;
+            white-space: pre-line;
+            text-align: left;
+            border: 2px solid #e8c37f;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 17px;
+            line-height: 1.7;
+            color: #4a4e75;
+            background: #fff;
+            margin-bottom: 16px;
+        }
+
+        .detail-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .secondary-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .save-btn {
+            background: #a76f2a;
+            color: white;
+        }
+
+        .secondary-btn {
+            background: #e9e7de;
+            color: #4a4e75;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes pop {
+            from {
+                opacity: 0;
+                transform: scale(.7);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .ribbon-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button id="openBtn">
+        <span class="ribbon">🎀</span>
+        Open Me
+    </button>
+
+    <div id="overlay">
+        <div id="messageBox">
+            <button id="close"></button>
+
+            <h1 id="popupTitle">For You ❤️</h1>
+
+            <p id="message">
+            </p>
+
+            <div id="actionRow">
+                <button id="yesBtn" class="choice-btn">Yes</button>
+                <button id="noBtn" class="choice-btn">No</button>
+            </div>
+
+            <div id="ribbonOptions" class="hidden">
+                <p class="options-label">Choose a ribbon to write your plan:</p>
+                <div class="ribbon-grid">
+                    <button class="ribbon-btn" data-page="wear">What to wear?</button>
+                    <button class="ribbon-btn" data-page="place">Where are we going?</button>
+                    <button class="ribbon-btn" data-page="time">When is the date and time?</button>
+                </div>
+            </div>
+
+            <button id="nextBtn" class="next-btn hidden">Next</button>
+        </div>
+    </div>
+
+    <div id="detailOverlay">
+        <div id="detailBox">
+            <button id="detailClose"></button>
+            <h2 id="detailTitle">What to wear?</h2>
+            <p id="detailHint">A special message just for you.</p>
+            <div class="detail-content">
+                <div id="detailMessage" class="detail-message">Your message will appear here.</div>
+                <img id="detailPhoto" class="detail-photo" src="photos/wear.svg" alt="Detail illustration">
+            </div>
+            <div class="detail-actions">
+                <button id="closeDetailBtn" class="secondary-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+ <div id="nextOverlay">
+    <div id="nextBox">
+        <h2>A sincere message to Auntie and Uncle,</h2>
+        <p id="nextOverlayMessage">Hello Auntie, and Uncle. Maayong adlaw ninyong duha po, hehehe. Kumusta man mo duha? I really hope that you guys are happy and healthy both of you are so special to Mary Rose and I could only pray that both of you will always be safe and strong. Auntie and Uncle, It has been Exactly 577 days since I have confirmed my feelings towards Mary Rose, and up until now my feelings for her did not change nor wavered. In fact I can say that it grew stronger as the day goes by. I have always been so proud of being her partner because she is THE Mary Rose. Aside from being proud, I am so lucky for being with her, not a single soul will ever be like her. She’s caring, hardworking both in academics and in your home, She’s smart, She’s lovely, She’s creative, She’s everything a perfect woman is. I could list down every single thing that I love about her and I would not get tired if you tell me to say it all over again. I am telling you all of this Auntie and Uncle, is because our First Lovely Anniversary is coming up this August 8, 2026. I genuinely would like to ask you both Auntie and Uncle, that I sincerely want to have a date with your daughter po this August 8. If it’s okay with you both, My plans are a bit different than before because if it’s okay with you Auntie and Uncle, Our location for our date will be at Vivace Art Cafe beside SM Seaside and the other is SM Mabolo. I can assure you that her safety will always come first NO. MATTER. WHAT. I wont be driving my car to the city because I know it would definitely risk us both, that’s why I ask Auntie and Uncle if you would be okay with us commuting on the way to the city and our destinations? If it’s okay with you both, Here is my detailed time stamps for the said day:
+
+We will meet on August 8, 2026, at 
+                        7:00 AM - 7:30 AM,  We'll travel from your home to danao
+                        7:30 AM - 8:45 AM or 9:00 AM, We'll arrive at north bus terminal and take a bus to Vivace Art Cafe which is near SM Seaside
+                        9:15 or 9:20 AM - 11:00 AM We will Spend our lovely time at Vivace Art Cafe. A cafe that we have been planning and wanting to go for months now
+                        11:00 AM - 11:30 AM, We'll travel to SM Mabolo
+                        11:30 AM - 2:00 PM, We'll have our lunch and burn our time such as arcades and strolling until
+                        2:30 PM - 4:55 PM Is the full duration of the movie *Spider-Man: Brand New Day
+                        5:00 PM - 5:45 PM We wil have our photobooth together and take our lovely photos together and;
+                        6:00 PM - 8:00 PM We will travel back home safely and have enjoyed our Special day together.
+
+
+Auntie and Uncle, Mary Rose has been the greatest experience that I have had in my entire life. Every problem, darkness, and sorrow has been nothing to me because such a girl exists, someone who I can love truly. I love here so much and I will continue to do so for as long as I live. It has been an honor to be by her side, but of course it wouldn’t be possible without you both and for that, from the bottom of my heart, thank you so much to you Auntie and Uncle for giving Me an opportunity to love your daughter. I will forever remember this kindness that you have shown to me and repay you both by loving your Mary Rose wholeheartedly. Again Auntie and Uncle, I hope it is okay with you both that we will spend our special day with the said location. If so Auntie, and Uncle, THANK YOU SO MUCH ! I truly appreciate and respect you both. Please, take care mo kanunay. I will pray for your family’s safety. Thank you once again! Good bye..!</p>
+        <div class="detail-actions">
+            <button id="closeNextBtn" class="secondary-btn">Close</button>
+        </div>
+    </div>
+</div>
+
+    <script>
+        const openBtn = document.getElementById("openBtn");
+        const overlay = document.getElementById("overlay");
+        const close = document.getElementById("close");
+        const popupTitle = document.getElementById("popupTitle");
+        const message = document.getElementById("message");
+        const actionRow = document.getElementById("actionRow");
+        const yesBtn = document.getElementById("yesBtn");
+        const noBtn = document.getElementById("noBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const ribbonOptions = document.getElementById("ribbonOptions");
+        const detailOverlay = document.getElementById("detailOverlay");
+        const detailTitle = document.getElementById("detailTitle");
+        const detailHint = document.getElementById("detailHint");
+        const detailMessage = document.getElementById("detailMessage");
+        const detailPhoto = document.getElementById("detailPhoto");
+        const closeDetailBtn = document.getElementById("closeDetailBtn");
+        const nextOverlay = document.getElementById("nextOverlay");
+        const closeNextBtn = document.getElementById("closeNextBtn");
+
+        const pages = {
+            wear: {
+                title: "What to wear?",
+                hint: "A lovely matching outfit idea for our special day.",
+                content: "Wear something blue. It’s a color we’ve both cherished and always found common ground in. Seeing you in it would make the day even more unforgettable...    :>",
+                photo: "photos/matching.jpg"
+            },
+            place: {
+                title: "Where are we going?",
+                hint: "Our destinations for our lovely day.",
+                content: "We'll begin our day at Vivace Art Café, where we can enjoy each other's company. Afterwards, we'll head to SM to have lunch and to the cinema to watch *Spider-Man: Brand New Day* together. I hope it's a day we'll both remember fondly. <3",
+                photo: "photos/what.png"
+            },
+            time: {
+                title: "When is the date and time?",
+                hint: "The perfect time and day to express our Love together. A day we wont ever forget.",
+                content: `We will meet on August 8, 2026, at 
+                        7:00 AM - 7:30 AM,  We'll travel from your home to danao
+                        7:30 AM - 8:45 AM or 9:00 AM, We'll arrive at north bus terminal and take a bus to Vivace Art Cafe which is near SM Seaside
+                        9:15 or 9:20 AM - 11:00 AM We will Spend our lovely time at Vivace Art Cafe. A cafe that we have been planning and wanting to go for months now
+                        11:00 AM - 11:30 AM, We'll travel to SM Mabolo
+                        11:30 AM - 2:00 PM, We'll have our lunch and burn our time such as arcades and strolling until
+                        2:30 PM - 4:55 PM Is the full duration of the movie *Spider-Man: Brand New Day
+                        5:00 PM - 5:45 PM We wil have our photobooth together and take our lovely photos together and;
+                        6:00 PM - 8:00 PM We will travel back home safely and have enjoyed our Special day together. 
+                        I hope you will enjoy this day with me`,
+                photo: "photos/time.png"
+            }
+        };
+
+        let activePage = null;
+        let currentStep = 0;
+
+        const steps = [
+            {
+                title: "HAPPY ANNIVERSARY, MY LOVE! 🎉",
+                text: "Hello, Mary Rose Batucan. First of all, I would like to tell you that I am so happy how far we have come. We had one heck of a journey and it’s just a year pa! How much more if we’re talking about the hundred more, hehehe. Our anniversary is coming up, it’s on August 8, 2026, and I would like to invite you on a special date ! One that we both can only experience once in a while. There’s a button that I tried to alter here so that u wont be able to decline, hehehe. GOOD LUCK !",
+                showChoices: true,
+                showNext: false,
+                showRibbonOptions: false
+            },
+            {
+                title: "A little more detail 💌",
+                text: "Choose a ribbon below and write your plan.",
+                showChoices: false,
+                showNext: true,
+                showRibbonOptions: true
+            },
+            {
+                title: "Forever starts today ✨",
+                text: "Thank you for being my favorite person.<br><br>I love you more than words can say.",
+                showChoices: false,
+                showNext: false,
+                showRibbonOptions: false
+            }
+        ];
+
+        function renderStep(index) {
+            currentStep = index;
+            const step = steps[index];
+            popupTitle.textContent = step.title;
+            message.innerHTML = step.text;
+            actionRow.classList.toggle("hidden", !step.showChoices);
+            nextBtn.classList.toggle("hidden", !step.showNext);
+            ribbonOptions.classList.toggle("hidden", !step.showRibbonOptions);
+            noBtn.style.transform = "translate(0, 0)";
+        }
+
+        function dodgeNoButton(event) {
+            const buttonRect = noBtn.getBoundingClientRect();
+            const pointerX = event.clientX;
+            const pointerY = event.clientY;
+            const fromLeft = pointerX - buttonRect.left;
+            const fromTop = pointerY - buttonRect.top;
+
+            const moveX = fromLeft < buttonRect.width / 2 ? 70 : -70;
+            const moveY = fromTop < buttonRect.height / 2 ? 70 : -70;
+
+            noBtn.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        }
+
+        function openDetailPage(pageKey) {
+            activePage = pageKey;
+            const page = pages[pageKey];
+            detailTitle.textContent = page.title;
+            detailHint.textContent = page.hint;
+            detailMessage.textContent = page.content;
+            detailPhoto.src = page.photo;
+            detailOverlay.style.display = "flex";
+        }
+
+        function closeDetailPage() {
+            detailOverlay.style.display = "none";
+            activePage = null;
+        }
+
+        openBtn.onclick = () => {
+            overlay.style.display = "flex";
+            renderStep(0);
+        };
+
+        close.onclick = () => {
+            overlay.style.display = "none";
+            renderStep(0);
+        };
+
+        yesBtn.onclick = () => {
+            renderStep(1);
+        };
+
+        nextBtn.onclick = () => {
+            if (currentStep === 1) {
+                overlay.style.display = "none";
+                nextOverlay.style.display = "flex";
+            }
+        };
+
+        document.querySelectorAll(".ribbon-btn").forEach((btn) => {
+            btn.addEventListener("click", () => openDetailPage(btn.dataset.page));
+        });
+
+        closeDetailBtn.onclick = () => {
+            closeDetailPage();
+        };
+
+
+        detailOverlay.onclick = (e) => {
+            if (e.target === detailOverlay) {
+                closeDetailPage();
+            }
+        };
+
+        noBtn.addEventListener("mouseenter", dodgeNoButton);
+        noBtn.addEventListener("mousemove", dodgeNoButton);
+
+        closeNextBtn.onclick = () => {
+        nextOverlay.style.display = "none";
+};
+
+        closeNextOverlayBtn.onclick = () => {
+            nextOverlay.style.display = "none";
+        };
+
+        nextOverlay.onclick = (e) => {
+            if (e.target === nextOverlay) {
+                nextOverlay.style.display = "none";
+            }
+        };
+
+        overlay.onclick = (e) => {
+            if (e.target === overlay) {
+                overlay.style.display = "none";
+                renderStep(0);
+            }
+        };
+    </script>
+</body>
+</html>
